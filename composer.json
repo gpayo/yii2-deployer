@@ -1,0 +1,36 @@
+{
+    "name": "gpayo/yii2-deployer",
+    "description": "An extension to deploy YII2 apps into production servers with some maintenance services",
+    "keywords": ["yii2", "deploy", "release"],
+    "homepage": "https://github.com/gpayo/yii2-deployer",
+    "type": "yii2-extension",
+    "license": "BSD-2-Clause",
+    "authors": [
+        {
+            "name": "Gonzalo Payo",
+            "email": "gonzalo@detg.fr"
+        }
+    ],
+    "source": {
+        "url": "git@github.com:gpayo/yii2-deployer.git",
+        "type": "git",
+        "reference": "master"
+    },
+    "support": {
+        "issues": "https://github.com/gpayo/yii2-deployer/issues?q=is%3Aopen",
+        "source": "https://github.com/gpayo/yii2-deployer"
+    },
+    "require": {
+        "yiisoft/yii2": "~2",
+        "rsync": "~3",
+        "git": "~2.5"
+    },
+    "extra": {
+        "bootstrap": "gpayo\\deployer\\DeployerBootstrap"
+    },
+    "autoload": {
+        "psr-4" : {
+            "gpayo\\deployer\\": ""
+        }
+    }
+}
