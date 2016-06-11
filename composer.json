@@ -12,9 +12,7 @@
         }
     ],
     "platform": {
-        "php": "~5.3",
-        "rsync": "~3",
-        "git": "~7.5"
+        "php": "~5.3"
     },
     "source": {
         "url": "git@github.com:gpayo/yii2-deployer.git",

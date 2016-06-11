@@ -6,7 +6,7 @@ use Yii;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
 
-class Deployer extends Component {
+class Deployer extends Component implements BootstrapInterface {
 
     /**
      * @var string[] array of production servers for this project
