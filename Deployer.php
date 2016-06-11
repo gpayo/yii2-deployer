@@ -25,7 +25,6 @@ class Deployer extends Module implements BootstrapInterface {
         if ($app instanceof \yii\console\Application) {
             $app->controllerMap[$this->id] = [
                 'class' => 'gpayo\deployer\commands\DeployerController',
-                'module' => $this,
             ];
         }
     }
