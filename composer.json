@@ -11,6 +11,11 @@
             "email": "gonzalo@detg.fr"
         }
     ],
+    "platform": {
+        "php": "~5.3",
+        "rsync": "~3",
+        "git": "~2.5"
+    },
     "source": {
         "url": "git@github.com:gpayo/yii2-deployer.git",
         "type": "git",
@@ -21,9 +26,7 @@
         "source": "https://github.com/gpayo/yii2-deployer"
     },
     "require": {
-        "yiisoft/yii2": "~2",
-        "rsync": "~3",
-        "git": "~2.5"
+        "yiisoft/yii2": "~2"
     },
     "extra": {
         "bootstrap": "gpayo\\deployer\\DeployerBootstrap"
