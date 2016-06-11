@@ -5,6 +5,7 @@ namespace gpayo\deployer;
 use Yii;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
+use yii\base\BootstrapInterface;
 
 class Deployer extends Component implements BootstrapInterface {
 
