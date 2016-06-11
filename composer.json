@@ -28,7 +28,7 @@
         "yiisoft/yii2": "~2"
     },
     "extra": {
-        "bootstrap": "gpayo\\deployer\\DeployerBootstrap"
+        "bootstrap": "gpayo\\deployer\\Deployer"
     },
     "autoload": {
         "psr-4" : {
