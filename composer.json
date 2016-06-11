@@ -15,7 +15,8 @@
         "php": "~5.3"
     },
     "source": {
-        "url": "git@github.com:gpayo/yii2-deployer.git",
+        "url": "/home/gpayo/NetBeansProjects/yii2-deployer",
+        "_url": "git@github.com:gpayo/yii2-deployer.git",
         "type": "git",
         "reference": "master"
     },
