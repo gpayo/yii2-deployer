@@ -6,7 +6,7 @@
  * @author gpayo
  */
 
-namespace deployer\commands;
+namespace gpayo\deployer\commands;
 
 use yii\console\Controller;
 use yii;

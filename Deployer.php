@@ -1,6 +1,6 @@
 <?php
 
-namespace deployer;
+namespace gpayo\deployer;
 
 use Yii;
 use yii\base\Module;
@@ -20,7 +20,7 @@ class Deployer extends Module implements BootstrapInterface {
      * Ex. "/var/www/project/"
      */
     public $production_root = null;
-    
+
     public function bootstrap($app) {
         if ($app instanceof \yii\console\Application) {
             $app->controllerMap[$this->id] = [
