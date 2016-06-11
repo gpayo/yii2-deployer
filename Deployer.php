@@ -3,11 +3,11 @@
 namespace gpayo\deployer;
 
 use Yii;
-use yii\base\Component;
+use yii\base\Module;
 use yii\base\InvalidConfigException;
 use yii\base\BootstrapInterface;
 
-class Deployer extends Component implements BootstrapInterface {
+class Deployer extends Module implements BootstrapInterface {
 
     /**
      * @var string[] array of production servers for this project
