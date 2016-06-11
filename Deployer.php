@@ -1,6 +1,6 @@
 <?php
 
-namespace gpayo\deployer;
+namespace deployer;
 
 use Yii;
 use yii\base\Module;
