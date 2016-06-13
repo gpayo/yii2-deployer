@@ -21,10 +21,21 @@ class Deployer extends Module implements BootstrapInterface {
      */
     public $production_root = null;
 
+    /**
+     * @var string Whole path to the rsync command
+     */
+    public $rsync_bin = false;
+
+    /**
+     * @var string Whole path to the git command
+     */
+    public $git_bin = false;
+
     public function bootstrap($app) {
         if ($app instanceof \yii\console\Application) {
             $app->controllerMap[$this->id] = [
-                'class' => 'gpayo\deployer\commands\DeployerController',
+                'class' => 'gpayo\deployer\console\DeployerController',
+                'module' => $this,
             ];
         }
     }
