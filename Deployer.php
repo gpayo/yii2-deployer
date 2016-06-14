@@ -24,12 +24,12 @@ class Deployer extends Module implements BootstrapInterface {
     /**
      * @var string Whole path to the rsync command
      */
-    public $rsync_bin = false;
+    public $rsync_bin = 'rsync';
 
     /**
      * @var string Whole path to the git command
      */
-    public $git_bin = false;
+    public $git_bin = 'git';
 
     public function bootstrap($app) {
         if ($app instanceof \yii\console\Application) {
