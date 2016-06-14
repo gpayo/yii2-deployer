@@ -1,35 +1,44 @@
 {
-    "name": "gpayo/yii2-deployer",
-    "description": "An extension to deploy YII2 apps into production servers with some maintenance services",
-    "keywords": ["yii2", "deploy", "release"],
-    "homepage": "https://github.com/gpayo/yii2-deployer",
-    "type": "yii2-extension",
-    "license": "BSD-2-Clause",
-    "authors": [
-        {
-            "name": "Gonzalo Payo",
-            "email": "gonzalo@detg.fr"
-        }
-    ],
-    "platform": {
-        "php": "~5.3"
-    },
-    "source": {
-        "url": "/home/gpayo/NetBeansProjects/yii2-deployer",
-        "_url": "git@github.com:gpayo/yii2-deployer.git",
-        "type": "git",
-        "reference": "master"
-    },
-    "support": {
-        "issues": "https://github.com/gpayo/yii2-deployer/issues?q=is%3Aopen",
-        "source": "https://github.com/gpayo/yii2-deployer"
-    },
-    "require": {
-        "yiisoft/yii2": "~2"
-    },
-    "autoload": {
-        "psr-4" : {
-            "gpayo\\deployer\\": ""
-        }
+  "name": "gpayo/yii2-deployer",
+  "description": "An extension to deploy YII2 apps into production servers with some maintenance services",
+  "keywords": ["yii2", "deploy", "release"],
+  "homepage": "https://github.com/gpayo/yii2-deployer",
+  "type": "yii2-extension",
+  "license": "BSD-2-Clause",
+  "authors": [
+    {
+      "name": "Gonzalo Payo",
+      "email": "gonzalo@detg.fr"
     }
+  ],
+  "platform": {
+    "php": "~5.3"
+  },
+  "source": {
+    "url": "/Users/gpayonavarro/kijiji/yii2-deployer",
+    "_url": "/home/gpayo/NetBeansProjects/yii2-deployer",
+    "__url": "git@github.com:gpayo/yii2-deployer.git",
+    "type": "git",
+    "reference": "master"
+  },
+  "support": {
+    "issues": "https://github.com/gpayo/yii2-deployer/issues?q=is%3Aopen",
+    "source": "https://github.com/gpayo/yii2-deployer"
+  },
+  "require": {
+    "yiisoft/yii2": "~2"
+  },
+  "require-dev": {
+    "yiisoft/yii2": "~2"
+  },
+  "autoload": {
+      "psr-4" : {
+        "gpayo\\deployer\\": ""
+      }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "0.0.1"
+    }
+  }
 }
