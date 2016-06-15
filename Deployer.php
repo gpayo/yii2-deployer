@@ -31,6 +31,17 @@ class Deployer extends Module implements BootstrapInterface {
      */
     public $git_bin = 'git';
 
+    /**
+     * @var bool Shall composer dumo-autoload --optimize be executed before deploying Composer packages?
+     */
+    public $optimize_composer_autoloader = false;
+
+    /**
+     * @var bool Whether to use composer's cached packages
+     * composer.phar install --profile --prefer-dist
+     */
+    public $use_cached_composer_packages = false;
+
     public function bootstrap($app) {
         if ($app instanceof \yii\console\Application) {
             $app->controllerMap[$this->id] = [
