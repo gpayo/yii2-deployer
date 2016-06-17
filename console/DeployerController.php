@@ -17,12 +17,14 @@ use yii;
  *
  */
 class DeployerController extends Controller {
+    public $module;
+
     public $defaultAction = 'deploy';
 
     public function options($action) {
         $opt = [
-            'deploy' => ['dryrun'],
-            'deploy-vendor' => ['dryrun'],
+            'deploy' => ['dryrun', 'verbose'],
+            'deploy-vendor' => ['dryrun', 'use_cached', 'optimize', 'verbose'],
         ];
 
         $result = [];
@@ -35,34 +37,79 @@ class DeployerController extends Controller {
     }
 
     public function optionAliases() {
-        return ['n' => 'dryrun'];
+        return [
+            'n' => 'dryrun',
+            'o' => 'optimize',
+            'c' => 'use_cached',
+            'v' => 'verbose',
+        ];
     }
 
     /**
-     * Whether to run real actions (false) or not (true)
+     * @var bool Whether to run real actions (false) or not (true)
      */
     public $dryrun = false;
 
-    protected $temporal_dir = null;
+    /**
+     * @var bool Shall composer dump-autoload --optimize be executed before deploying Composer packages?
+     */
+    public $optimize = false;
 
     /**
-     * Releases the master branch of this project into the production servers
-     *
+    * @var bool Show status messages
+    */
+    public $verbose = false;
+
+    /**
+     * @var bool Whether to use composer's cached packages
+     * composer.phar install --profile --prefer-dist
      */
-    public function actionDeploy() {
+    public $use_cached = false;
+
+    protected $temporal_dir = null;
+
+    public function init() {
         $result = $this->checkNeededCommands();
 
         if (!$result) {
             $this->writeError("\nExecution stopped due previous errors.... exiting");
             return Controller::EXIT_CODE_ERROR;
         }
+    }
 
+    /**
+     * Releases the master branch of this project into the production servers
+     *
+     */
+    public function actionDeploy() {
         $this->writeMessage('Clonning repository... ');
         $git_command = $this->buildGitCommand();
 
-        echo "\n\n";
-        echo $git_command;
-        echo "\n\n";
+        if ($this->verbose) {
+            $this->writeMessageNL('INFO Issuing: ');
+            $this->writeMessageNL($git_command);
+        }
+
+        shell_exec($git_command);
+
+        $this->writeMessageNL(' done!');
+
+        $rsync_command_template = $this->buildRsyncCommand();
+
+        foreach ($this->module->production_servers as $production_server) {
+            $rsync_command = str_replace('{production_server}', $production_server, $rsync_command_template);
+            $this->writeMessageNL('Copying data to ' . $production_server);
+
+            if ($this->verbose) {
+                $this->writeMessageNL('INFO Issuing: ');
+                $this->writeMessageNL($rsync_command);
+            }
+
+            $result = shell_exec($rsync_command);
+
+            echo $result;
+
+        }
 
         self::deleteDir($this->temporal_dir);
     }
@@ -72,6 +119,7 @@ class DeployerController extends Controller {
      *
      */
     public function actionDeployVendor() {
+        echo $this->getUniqueID();
     }
 
     protected function checkNeededCommands() {
@@ -105,7 +153,7 @@ class DeployerController extends Controller {
     }
 
     protected function buildGitCommand() {
-        $result  = 'git clone ';
+        $result  = 'git clone -q ';
         $result .= escapeshellarg(yii::getAlias('@app'));
 
         $tempfile=tempnam(sys_get_temp_dir(), '');
@@ -123,6 +171,24 @@ class DeployerController extends Controller {
         $this->temporal_dir = $tempfile;
 
         $result .= ' ' . $this->temporal_dir;
+
+        return $result;
+    }
+
+    protected function buildRsyncCommand() {
+        $result  = 'rsync -i --filter=\':- .gitignore\' -vazc --no-g --no-t --no-p ';
+
+        if (PHP_OS == 'Darwin') {
+            $result .= '--iconv=utf-8-mac,utf-8 ';
+        }
+
+        if ($this->dryrun) {
+            $result .= '-n ';
+        }
+
+        $result .= ' -e ssh ' . $this->temporal_dir . '/ ';
+
+        $result .= '{production_server}:' . $this->module->production_root . ' ';
 
         return $result;
     }

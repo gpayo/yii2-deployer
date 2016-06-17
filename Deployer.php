@@ -8,7 +8,6 @@ use yii\base\InvalidConfigException;
 use yii\base\BootstrapInterface;
 
 class Deployer extends Module implements BootstrapInterface {
-
     /**
      * @var string[] array of production servers for this project
      * As in ["10.0.1.1", "example.com"]
@@ -31,16 +30,15 @@ class Deployer extends Module implements BootstrapInterface {
      */
     public $git_bin = 'git';
 
-    /**
-     * @var bool Shall composer dumo-autoload --optimize be executed before deploying Composer packages?
-     */
-    public $optimize_composer_autoloader = false;
-
-    /**
-     * @var bool Whether to use composer's cached packages
-     * composer.phar install --profile --prefer-dist
-     */
-    public $use_cached_composer_packages = false;
+    public function init() {
+        if (count($this->production_servers) == 0) {
+            throw new InvalidConfigException('No production servers defined');
+        }
+        if (empty($this->production_root)) {
+            throw new InvalidConfigException('No production root defined');
+        }
+        parent::init();
+    }
 
     public function bootstrap($app) {
         if ($app instanceof \yii\console\Application) {
