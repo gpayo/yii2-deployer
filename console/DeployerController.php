@@ -87,20 +87,51 @@ class DeployerController extends Controller {
      *
      */
     public function actionDeploy() {
-        $this->writeMessage('Clonning repository... ');
-        $git_command = $this->buildGitCommand();
-
-        if ($this->verbose) {
-            $this->writeMessageNL('INFO Issuing: ');
-            $this->writeMessageNL($git_command);
-        }
-
-        shell_exec($git_command);
-
-        $this->writeMessageNL(' done!');
+        $this->cloneRepository();
 
         $rsync_command_template = $this->buildRsyncCommand();
 
+        $this->rsyncRepository($rsync_command_template);
+
+        self::deleteDir($this->temporalDir);
+    }
+
+    /**
+     * Releases the vendor directory for this project into the production servers
+     *
+     */
+    public function actionDeployVendor() {
+        $this->cloneRepository();
+
+        $command  = $this->module->composer_bin . '-d=' . escapeshellarg($this->temporalDir) . ' ';
+        $command .= '--no-dev ';
+
+        if ($this->useCached) {
+            $command .= '--profile --prefer-dist ';
+        }
+
+        if ($this->optimize) {
+            $command .= '-o ';
+        }
+
+        if ($this->dryrun) {
+            $command .= '--dry-run ';
+        }
+
+        if ($this->verbose) {
+            $this->writeMessageNL('INFO Issuing: ' . $command);
+        }
+
+        echo shell_exec($command);
+
+        $rsync_command_template = $this->buildRsyncCommand('vendor');
+
+        $this->rsyncRepository($rsync_command_template);
+
+        self::deleteDir($this->temporalDir);
+    }
+
+    protected function rsyncRepository($rsync_command_template) {
         foreach ($this->module->production_servers as $production_server) {
             $rsync_command = str_replace('{production_server}', $production_server, $rsync_command_template);
             $this->writeMessageNL('Copying data to ' . $production_server);
@@ -124,16 +155,20 @@ class DeployerController extends Controller {
             }
 
         }
-
-        self::deleteDir($this->temporalDir);
     }
 
-    /**
-     * Releases the vendor directory for this project into the production servers
-     *
-     */
-    public function actionDeployVendor() {
-        echo $this->getUniqueID();
+    protected function cloneRepository() {
+        $this->writeMessage('Clonning repository... ');
+        $git_command = $this->buildGitCommand();
+
+        if ($this->verbose) {
+            $this->writeMessageNL('INFO Issuing: ');
+            $this->writeMessageNL($git_command);
+        }
+
+        shell_exec($git_command);
+
+        $this->writeMessageNL(' done!');
     }
 
     protected function checkNeededCommands() {
@@ -189,7 +224,7 @@ class DeployerController extends Controller {
         return $result;
     }
 
-    protected function buildRsyncCommand() {
+    protected function buildRsyncCommand($dir) {
         $result  = 'rsync -i --filter=\':- .gitignore\' -vazc --no-g --no-t --no-p ';
 
         if (PHP_OS == 'Darwin') {
@@ -200,9 +235,9 @@ class DeployerController extends Controller {
             $result .= '-n ';
         }
 
-        $result .= ' -e ssh ' . $this->temporalDir . '/ ';
+        $result .= ' -e ssh ' . $this->temporalDir . "/$dir ";
 
-        $result .= '{production_server}:' . $this->module->production_root . ' ';
+        $result .= '{production_server}:' . $this->module->production_root . '/$dir ';
 
         return $result;
     }
