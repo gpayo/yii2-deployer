@@ -30,6 +30,11 @@ class Deployer extends Module implements BootstrapInterface {
      */
     public $git_bin = 'git';
 
+    /**
+     * @var string[] Additional directories to clear. Base will be @app
+     */
+    public $runtime_directories = [];
+
     public function init() {
         if (count($this->production_servers) == 0) {
             throw new InvalidConfigException('No production servers defined');
@@ -37,6 +42,10 @@ class Deployer extends Module implements BootstrapInterface {
         if (empty($this->production_root)) {
             throw new InvalidConfigException('No production root defined');
         }
+        if (!is_array($this->runtime_directories)) {
+            throw new InvalidConfigException('runtime_directories is not an array');
+        }
+
         parent::init();
     }
 

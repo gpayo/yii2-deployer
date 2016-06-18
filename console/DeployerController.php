@@ -23,8 +23,8 @@ class DeployerController extends Controller {
 
     public function options($action) {
         $opt = [
-            'deploy' => ['dryrun', 'verbose'],
-            'deploy-vendor' => ['dryrun', 'use_cached', 'optimize', 'verbose'],
+            'deploy' => ['dryrun', 'verbose', 'clearRuntime'],
+            'deploy-vendor' => ['dryrun', 'useCached', 'optimize', 'verbose'],
         ];
 
         $result = [];
@@ -40,7 +40,7 @@ class DeployerController extends Controller {
         return [
             'n' => 'dryrun',
             'o' => 'optimize',
-            'c' => 'use_cached',
+            'c' => 'useCached',
             'v' => 'verbose',
         ];
     }
@@ -64,9 +64,14 @@ class DeployerController extends Controller {
      * @var bool Whether to use composer's cached packages
      * composer.phar install --profile --prefer-dist
      */
-    public $use_cached = false;
+    public $useCached = false;
 
-    protected $temporal_dir = null;
+    /**
+     * @var bool Issues `yii cache/flush-all` after the release
+     */
+    public $clearRuntime = false;
+
+    protected $temporalDir = null;
 
     public function init() {
         $result = $this->checkNeededCommands();
@@ -101,17 +106,26 @@ class DeployerController extends Controller {
             $this->writeMessageNL('Copying data to ' . $production_server);
 
             if ($this->verbose) {
-                $this->writeMessageNL('INFO Issuing: ');
+                $this->writeMessageNL();
+                $this->writeMessage('INFO Issuing: ');
                 $this->writeMessageNL($rsync_command);
+                $this->writeMessageNL();
             }
 
             $result = shell_exec($rsync_command);
 
-            echo $result;
+            // Removing the directories
+            $result = preg_replace('!^.+/ *\n!m', '', $result);
+
+            $this->writeMessage($result);
+
+            if ($this->clearRuntime) {
+                $this->runClearRuntime();
+            }
 
         }
 
-        self::deleteDir($this->temporal_dir);
+        self::deleteDir($this->temporalDir);
     }
 
     /**
@@ -140,15 +154,15 @@ class DeployerController extends Controller {
         return !empty(shell_exec("which $command"));
     }
 
-    protected function writeError($message) {
+    protected function writeError($message='') {
         $this->stderr($message . "\n", Console::FG_RED | Console::BOLD);
     }
 
-    protected function writeMessage($message) {
+    protected function writeMessage($message='') {
         $this->stdout($message);
     }
 
-    protected function writeMessageNL($message) {
+    protected function writeMessageNL($message = '') {
         $this->stdout($message . "\n");
     }
 
@@ -168,9 +182,9 @@ class DeployerController extends Controller {
             die(1);
         }
 
-        $this->temporal_dir = $tempfile;
+        $this->temporalDir = $tempfile;
 
-        $result .= ' ' . $this->temporal_dir;
+        $result .= ' ' . $this->temporalDir;
 
         return $result;
     }
@@ -186,7 +200,7 @@ class DeployerController extends Controller {
             $result .= '-n ';
         }
 
-        $result .= ' -e ssh ' . $this->temporal_dir . '/ ';
+        $result .= ' -e ssh ' . $this->temporalDir . '/ ';
 
         $result .= '{production_server}:' . $this->module->production_root . ' ';
 
@@ -204,5 +218,35 @@ class DeployerController extends Controller {
             }
         }
         rmdir($dir);
+    }
+
+    protected function runClearRuntime() {
+        $fullPathToYii = escapeshellarg($this->module->production_root . '/yii cache/flush-all');
+
+        foreach ($this->module->production_servers as $production_server) {
+            $command = 'ssh ' . $production_server . ' ' . $fullPathToYii;
+
+            if ($this->verbose) {
+                $this->writeMessageNL('INFO Issuing: ' . $command);
+            }
+
+            if (!$this->dryrun) {
+                shell_exec($command);
+            }
+        }
+
+        foreach ($this->module->runtime_directories as $runtime_dir) {
+            $dir = $this->module->production_root . '/runtime/' . $runtime_dir;
+
+            $command = 'ssh ' . $production_server . ' ' . escapeshellarg('rm -fr ' . $dir);
+
+            if ($this->verbose) {
+                $this->writeMessageNL('INFO Issuing: ' . $command);
+            }
+
+            if (!$this->dryrun) {
+                shell_exec($command);
+            }
+        }
     }
 }
