@@ -93,6 +93,23 @@ class DeployerController extends Controller {
 
         $this->rsyncRepository($rsync_command_template);
 
+        if ($this->clearRuntime) {
+            $command_template = 'ssh {production_server} {command}';
+            foreach ($this->module->production_servers as $production_server) {
+                $command = str_replace('{production_server}', $production_server, $command_template);
+                $command = str_replace('{command}', escapeshellarg($this->module->production_root . '/yii cache/flush-all'), $command);
+
+                echo shell_exec($command);
+
+                foreach ($this->module->runtime_directories as $dir) {
+                    $command = str_replace('{production_server}', $production_server, $command_template);
+                    $command = str_replace('{command}', escapeshellarg('rm -fr ' . $this->module->production_root . '/runtime/' . $dir), $command);
+
+                    echo shell_exec($command);
+                }
+            }
+        }
+
         self::deleteDir($this->temporalDir);
     }
 
