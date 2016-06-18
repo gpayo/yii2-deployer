@@ -31,6 +31,11 @@ class Deployer extends Module implements BootstrapInterface {
     public $git_bin = 'git';
 
     /**
+     * @var string Whole path to the composer.phar command
+     */
+    public $composer_bin = 'composer.phar';
+
+    /**
      * @var string[] Additional directories to clear. Base will be @app
      */
     public $runtime_directories = [];

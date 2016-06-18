@@ -103,7 +103,11 @@ class DeployerController extends Controller {
     public function actionDeployVendor() {
         $this->cloneRepository();
 
-        $command  = $this->module->composer_bin . '-d=' . escapeshellarg($this->temporalDir) . ' ';
+        $this->writeMessage('Getting composer packages... ');
+        $remove_command = $this->module->composer_bin . ' -q remove --dev gpayo/yii2-deployer -d=' . escapeshellarg($this->temporalDir) . ' ';
+        echo shell_exec($remove_command);
+
+        $command  = $this->module->composer_bin . ' -q install -d=' . escapeshellarg($this->temporalDir) . ' ';
         $command .= '--no-dev ';
 
         if ($this->useCached) {
@@ -124,7 +128,9 @@ class DeployerController extends Controller {
 
         echo shell_exec($command);
 
-        $rsync_command_template = $this->buildRsyncCommand('vendor');
+        $this->writeMessage('done!');
+
+        $rsync_command_template = $this->buildRsyncCommand('vendor/');
 
         $this->rsyncRepository($rsync_command_template);
 
@@ -225,7 +231,7 @@ class DeployerController extends Controller {
     }
 
     protected function buildRsyncCommand($dir) {
-        $result  = 'rsync -i --filter=\':- .gitignore\' -vazc --no-g --no-t --no-p ';
+        $result  = 'rsync -i --filter=\':- .gitignore\' -Cvazc --no-g --no-t --no-p ';
 
         if (PHP_OS == 'Darwin') {
             $result .= '--iconv=utf-8-mac,utf-8 ';
@@ -237,7 +243,7 @@ class DeployerController extends Controller {
 
         $result .= ' -e ssh ' . $this->temporalDir . "/$dir ";
 
-        $result .= '{production_server}:' . $this->module->production_root . '/$dir ';
+        $result .= '{production_server}:' . $this->module->production_root . "/$dir ";
 
         return $result;
     }
@@ -245,11 +251,16 @@ class DeployerController extends Controller {
     protected static function deleteDir($dir) {
         $it = new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS);
         $files = new \RecursiveIteratorIterator($it,  \RecursiveIteratorIterator::CHILD_FIRST);
+
         foreach($files as $file) {
             if ($file->isDir()){
                 rmdir($file->getRealPath());
             } else {
-                unlink($file->getRealPath());
+                if ($file->isLink()) {
+                    unlink($file->getPathName());
+                } else {
+                    unlink($file->getRealPath());
+                }
             }
         }
         rmdir($dir);
