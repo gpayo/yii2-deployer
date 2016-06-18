@@ -230,7 +230,7 @@ class DeployerController extends Controller {
         return $result;
     }
 
-    protected function buildRsyncCommand($dir) {
+    protected function buildRsyncCommand($dir='') {
         $result  = 'rsync -i --filter=\':- .gitignore\' -Cvazc --no-g --no-t --no-p ';
 
         if (PHP_OS == 'Darwin') {
