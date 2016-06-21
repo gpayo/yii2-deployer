@@ -17,6 +17,7 @@ use yii;
  *
  */
 class DeployerController extends Controller {
+    /** @var \gpayo\Deployer */
     public $module;
 
     public $defaultAction = 'deploy';
@@ -195,13 +196,18 @@ class DeployerController extends Controller {
     }
 
     protected function checkNeededCommands() {
-        if (!$this->command_exists('rsync')) {
+        if (!$this->command_exists($this->module->rsync)) {
             $this->writeError("Err. Command rsync doesn't exists");
             return false;
         }
 
-        if (!$this->command_exists('git')) {
+        if (!$this->command_exists($this->module->git_bin)) {
             $this->writeError("Err. Command git doesn't exists");
+            return false;
+        }
+
+        if (!$this->command_exists($this->module->composer_bin)) {
+            $this->writeError("Err. Command composer.phar doesn't exists");
             return false;
         }
 
