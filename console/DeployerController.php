@@ -196,7 +196,7 @@ class DeployerController extends Controller {
     }
 
     protected function checkNeededCommands() {
-        if (!$this->command_exists($this->module->rsync)) {
+        if (!$this->command_exists($this->module->rsync_bin)) {
             $this->writeError("Err. Command rsync doesn't exists");
             return false;
         }
