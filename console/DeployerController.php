@@ -231,7 +231,7 @@ class DeployerController extends Controller {
     }
 
     protected function buildGitCommand() {
-        $result  = 'git clone -q ';
+        $result  = $this->module->git_bin . ' clone -q ';
         $result .= escapeshellarg(yii::getAlias('@app'));
 
         $tempfile=tempnam(sys_get_temp_dir(), '');
@@ -254,7 +254,7 @@ class DeployerController extends Controller {
     }
 
     protected function buildRsyncCommand($dir='') {
-        $result  = 'rsync -i --filter=\':- .gitignore\' -Cvazc --no-g --no-t --no-p ';
+        $result  = $this->module->rsync_bin . ' -i --filter=\':- .gitignore\' -Cvazc --no-g --no-t --no-p ';
 
         if (PHP_OS == 'Darwin') {
             $result .= '--iconv=utf-8-mac,utf-8 ';
