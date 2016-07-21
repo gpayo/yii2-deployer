@@ -36,6 +36,11 @@ class Deployer extends Module implements BootstrapInterface {
     public $composer_bin = 'composer.phar';
 
     /**
+     * @var string Whole path to java command
+     */
+    public $java_bin = 'java';
+
+    /**
      * @var string[] Additional directories to clear. Base will be @app
      */
     public $runtime_directories = [];

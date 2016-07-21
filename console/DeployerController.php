@@ -24,8 +24,8 @@ class DeployerController extends Controller {
 
     public function options($action) {
         $opt = [
-            'deploy' => ['dryrun', 'verbose', 'clearRuntime'],
-            'deploy-vendor' => ['dryrun', 'useCached', 'optimize', 'verbose'],
+            'deploy' => ['dryrun', 'verbose', 'clearRuntime', 'noCompactCssJs'],
+            'deploy-vendor' => ['dryrun', 'noUseCached', 'noOptimize', 'verbose'],
         ];
 
         $result = [];
@@ -40,9 +40,10 @@ class DeployerController extends Controller {
     public function optionAliases() {
         return [
             'n' => 'dryrun',
-            'o' => 'optimize',
-            'c' => 'useCached',
+            'o' => 'noOptimize',
+            'c' => 'noUseCached',
             'v' => 'verbose',
+            'y' => 'noCompactCssJs',
         ];
     }
 
@@ -54,7 +55,7 @@ class DeployerController extends Controller {
     /**
      * @var bool Shall composer dump-autoload --optimize be executed before deploying Composer packages?
      */
-    public $optimize = false;
+    public $noOptimize = false;
 
     /**
     * @var bool Show status messages
@@ -65,12 +66,18 @@ class DeployerController extends Controller {
      * @var bool Whether to use composer's cached packages
      * composer.phar install --profile --prefer-dist
      */
-    public $useCached = false;
+    public $noUseCached = false;
 
     /**
      * @var bool Issues `yii cache/flush-all` after the release
      */
     public $clearRuntime = false;
+
+
+    /**
+     * @var bool Avoid default compact of CSS and JS files in @webroot/css and @webroot/js
+     */
+    public $noCompactCssJs = false;
 
     protected $temporalDir = null;
 
@@ -91,6 +98,27 @@ class DeployerController extends Controller {
         $this->cloneRepository();
 
         $rsync_command_template = $this->buildRsyncCommand();
+
+        if (!$this->noCompactCssJs) {
+            if ($this->verbose) {
+                $this->writeMessageNL('INFO compacting CSS');
+            }
+            if (!$this->dryrun) {
+                $files = \Yii::alias('@webroot/css/*.css');
+                $command = $this->module->java_bin . ' -jar vendor/bin/yuicompressor.jar -o ".css$:.css" ' . $files;
+
+                echo shell_exec($command);
+            }
+            if ($this->verbose) {
+                $this->writeMessageNL('INFO compacting JS');
+            }
+            if (!$this->dryrun) {
+                $files = \Yii::alias('@webroot/css/*.js');
+                $command = $this->module->java_bin . ' -jar vendor/bin/yuicompressor.jar -o ".js$:.js" ' . $files;
+
+                echo shell_exec($command);
+            }
+        }
 
         $this->rsyncRepository($rsync_command_template);
 
@@ -128,11 +156,11 @@ class DeployerController extends Controller {
         $command  = $this->module->composer_bin . ' -q install -d=' . escapeshellarg($this->temporalDir) . ' ';
         $command .= '--no-dev ';
 
-        if ($this->useCached) {
+        if (!$this->noUseCached) {
             $command .= '--profile --prefer-dist ';
         }
 
-        if ($this->optimize) {
+        if (!$this->noOptimize) {
             $command .= '-o ';
         }
 
@@ -146,7 +174,7 @@ class DeployerController extends Controller {
 
         echo shell_exec($command);
 
-        $this->writeMessage('done!');
+        $this->writeMessageNL('done!');
 
         $rsync_command_template = $this->buildRsyncCommand('vendor/');
 
@@ -208,6 +236,11 @@ class DeployerController extends Controller {
 
         if (!$this->command_exists($this->module->composer_bin)) {
             $this->writeError("Err. Command composer.phar doesn't exists");
+            return false;
+        }
+
+        if (!$this->command_exists($this->module->java_bin)) {
+            $this->writeError("Err. Command java doesn't exists");
             return false;
         }
 
