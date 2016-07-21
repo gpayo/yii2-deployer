@@ -104,8 +104,8 @@ class DeployerController extends Controller {
                 $this->writeMessageNL('INFO compacting CSS');
             }
             if (!$this->dryrun) {
-                $files = yii::getAlias('@app/web/css/*.css');
-                $command = $this->module->java_bin . ' -jar vendor/bin/yuicompressor.jar -o ".css$:.css" ' . $files;
+                $files = $this->temporalDir . '/web/css/*.css';
+                $command = $this->module->java_bin . ' -jar vendor/bin/yuicompressor.jar -o ".css$:.css" ' . $files ;
 
                 echo shell_exec($command);
             }
@@ -113,7 +113,7 @@ class DeployerController extends Controller {
                 $this->writeMessageNL('INFO compacting JS');
             }
             if (!$this->dryrun) {
-                $files = yii::getAlias('@app/web/css/*.js');
+                $files = $this->temporalDir . '/web/js/*.js';
                 $command = $this->module->java_bin . ' -jar vendor/bin/yuicompressor.jar -o ".js$:.js" ' . $files;
 
                 echo shell_exec($command);
