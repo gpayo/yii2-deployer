@@ -81,6 +81,8 @@ class DeployerController extends Controller {
 
     protected $temporalDir = null;
 
+    protected $lessFilesFound = false;
+
     public function init() {
         $result = $this->checkNeededCommands();
 
@@ -97,13 +99,27 @@ class DeployerController extends Controller {
     public function actionDeploy() {
         $this->cloneRepository();
 
-        $rsync_command_template = $this->buildRsyncCommand();
-
         if (!$this->noCompactCssJs) {
             if ($this->verbose) {
                 $this->writeMessageNL('INFO compacting CSS');
             }
             if (!$this->dryrun) {
+                $less_files_command = 'find ' . $this->temporalDir . '/web/css/*.less';
+                $less_files = shell_exec($less_files_command);
+                $less_files = explode("\n", $less_files);
+                foreach ($less_files as $less_file) {
+                    if (empty($less_file)) {
+                        continue;
+                    }
+                    $this->lessFilesFound = true;
+                    $less_command = 'lessc --include-path='. escapeshellarg(yii::getAlias('@app')) .'/vendor/bower/bootstrap/less/ ' . $less_file;
+                    $css_content = shell_exec($less_command);
+                    if (!empty($css_content)) {
+                        $css_file = preg_replace('/\.less/', '', $less_file) . '.css';
+                        file_put_contents($css_file, $css_content);
+                    }
+                }
+
                 $files = $this->temporalDir . '/web/css/*.css';
                 $command = $this->module->java_bin . ' -jar vendor/bin/yuicompressor.jar -o ".css$:.css" ' . $files ;
 
@@ -119,6 +135,8 @@ class DeployerController extends Controller {
                 echo shell_exec($command);
             }
         }
+
+        $rsync_command_template = $this->buildRsyncCommand();
 
         $this->rsyncRepository($rsync_command_template);
 
@@ -138,6 +156,9 @@ class DeployerController extends Controller {
                 }
             }
         }
+
+        echo $this->temporalDir;
+        return;
 
         self::deleteDir($this->temporalDir);
     }
@@ -287,7 +308,13 @@ class DeployerController extends Controller {
     }
 
     protected function buildRsyncCommand($dir='') {
-        $result  = $this->module->rsync_bin . ' -i --filter=\':- .gitignore\' -Cvazc --no-g --no-t --no-p ';
+        $result  = $this->module->rsync_bin . ' -i ';
+
+        if ($this->lessFilesFound) {
+            $result .= '--include=*.css ';
+        }
+
+        $result .= '--filter=\':- .gitignore\' -Cvazc --no-g --no-t --no-p ';
 
         if (PHP_OS == 'Darwin') {
             $result .= '--iconv=utf-8-mac,utf-8 ';
